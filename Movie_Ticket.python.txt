@@ -1,0 +1,85 @@
+class StarCinema:
+    _hall_list = []
+
+    @classmethod
+    def entry_hall(cls, hall):
+        cls._hall_list.append(hall)
+
+
+class Hall:
+    def __init__(self, rows, cols, hall_no):
+        self._seats = {}
+        self._show_list = []
+        self._rows = rows
+        self._cols = cols
+        self._hall_no = hall_no
+        StarCinema.entry_hall(self)
+
+    def entry_show(self, show_id, movie_name, time):
+        show_info = (show_id, movie_name, time)
+        self._show_list.append(show_info)
+
+        seats = [['O' for _ in range(self._cols)] for _ in range(self._rows)]
+        self._seats[show_id] = seats
+
+    def book_seats(self, show_id, seat_list):
+        if show_id not in self._seats:
+            raise ValueError("Invalid show ID")
+
+        seats = self._seats[show_id]
+
+        for row, col in seat_list:
+            if not (1 <= row <= self._rows and 1 <= col <= self._cols):
+                raise ValueError("Invalid seat")
+
+            if seats[row - 1][col - 1] == 'X':
+                raise ValueError("Seat already booked")
+
+            seats[row - 1][col - 1] = 'X'
+
+    def view_show_list(self):
+        for show in self._show_list:
+            print(show)
+
+    def view_available_seats(self, show_id):
+        if show_id not in self._seats:
+            raise ValueError("Invalid show ID")
+
+        seats = self._seats[show_id]
+        available_seats = []
+        for i in range(self._rows):
+            for j in range(self._cols):
+                if seats[i][j] == 'O':
+                    available_seats.append((i + 1, j + 1))
+        return available_seats
+
+class CounterSystem:
+    @staticmethod
+    def view_all_shows():
+        for hall in StarCinema._hall_list:
+            print(f"Hall {hall._hall_no} Shows:")
+            hall.view_show_list()
+
+    @staticmethod
+    def view_available_seats(hall_no, show_id):
+        for hall in StarCinema._hall_list:
+            if hall._hall_no == hall_no:
+                return hall.view_available_seats(show_id)
+        raise ValueError("Invalid Hall Number")
+
+    @staticmethod
+    def book_tickets(hall_no, show_id, seat_list):
+        for hall in StarCinema._hall_list:
+            if hall._hall_no == hall_no:
+                hall.book_seats(show_id, seat_list)
+                return f"Tickets booked successfully for Show {show_id}"
+        raise ValueError("Invalid Hall Number")
+
+hall1 = Hall(rows=5, cols=5, hall_no=1)
+hall1.entry_show(show_id="show1", movie_name="Movie 1", time="12:00 PM")
+hall1.entry_show(show_id="show2", movie_name="Movie 2", time="3:00 PM")
+hall1.book_seats(show_id="show1", seat_list=[(1, 1), (2, 2)])
+hall1.view_show_list()
+
+print(CounterSystem.view_available_seats(hall_no=1, show_id="show1"))
+print(CounterSystem.book_tickets(hall_no=1, show_id="show1", seat_list=[(3, 3), (4, 4)]))
